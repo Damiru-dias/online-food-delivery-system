@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BiteBreeze Food Delivery - Sri Lanka</title>
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <a href="#" class="brand" onclick="location.reload()">
+      <div class="brand-icon">🍛</div>
+      <span id="nav-brand-title">BiteBreeze Express</span>
+    </a>
+
+    <div class="nav-actions">
+      <!-- Admin Portal Button (HIDDEN BY DEFAULT - ONLY VISIBLE TO LOGGED IN ADMIN) -->
+      <button class="btn btn-secondary" id="admin-nav-btn" style="display: none;" onclick="openAdminModal()">
+        <span>⚙️</span> <span>Admin Portal</span>
+      </button>
+
+      <!-- User Profile / Login status button -->
+      <button class="btn btn-outline" id="user-auth-btn" onclick="openAuthModal()">
+        <span>👤</span> <span id="auth-btn-label">Login / Register</span>
+      </button>
+
+      <!-- Cart Button -->
+      <button class="btn btn-primary cart-btn-badge" onclick="toggleCartDrawer(true)">
+        <span>🛒</span>
+        <span>Basket</span>
+        <span class="cart-badge" id="nav-cart-count">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- HERO BANNER -->
+  <section class="hero-banner">
+    <div class="hero-content">
+      <h1 id="banner-restaurant-name">Authentic & Delicious Food Delivered Fast in Sri Lanka</h1>
+      <p>Enjoy hot kottu, savory fried rice, gourmet burgers, artisan pizzas and desserts. Pay seamlessly in Sri Lankan Rupees via Card, LankaQR or Cash on Delivery.</p>
+      <div class="hero-badges">
+        <span class="badge-item">🇱🇰 Sri Lankan Rupees (Rs.)</span>
+        <span class="badge-item">⚡ 30-45 Min Express Delivery</span>
+        <span class="badge-item">💳 Card, LankaQR & COD</span>
+        <span class="badge-item">📱 OTP Verified Profiles</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN CONTAINER -->
+  <main class="container">
+    <!-- Categories & Search Bar -->
+    <div class="controls-bar">
+      <div class="categories-pill-list" id="category-pills">
+        <!-- Rendered dynamically -->
+      </div>
+      <div class="search-input-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="food-search-input" placeholder="Search menu in Sri Lanka..." oninput="handleSearchFood()">
+      </div>
+    </div>
+
+    <!-- FOOD MENU GRID -->
+    <div class="food-grid" id="food-catalog-grid">
+      <!-- Food cards rendered dynamically -->
+    </div>
+  </main>
+
+  <!-- CART & BILL SUMMARY DRAWER -->
+  <div class="drawer-backdrop" id="cart-drawer-backdrop" onclick="toggleCartDrawer(false)"></div>
+  <aside class="drawer" id="cart-drawer">
+    <div class="drawer-header">
+      <h3>Your Food Basket (<span id="drawer-items-count">0</span>)</h3>
+      <button class="drawer-close" onclick="toggleCartDrawer(false)">&times;</button>
+    </div>
+
+    <div class="drawer-body">
+      <!-- Empty Basket Message -->
+      <div id="cart-empty-message" style="text-align: center; padding: 2rem 0; display: none;">
+        <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">🍽️</div>
+        <h4>Your basket is empty</h4>
+        <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 0.4rem;">Browse our menu and pick your favorite meals!</p>
+      </div>
+
+      <!-- Cart Item Rows -->
+      <div id="cart-items-container">
+        <!-- Filled by JS -->
+      </div>
+
+      <!-- Promo Code Section (WITHOUT View Available Coupons link) -->
+      <div class="summary-box" id="promo-section-box">
+        <label style="font-size: 0.88rem; font-weight: 700; color: var(--secondary); display: block; margin-bottom: 0.2rem;">Have a Promo Code?</label>
+        <div class="promo-input-group">
+          <input type="text" id="cart-promo-input" placeholder="Enter coupon code">
+          <button class="btn btn-outline" onclick="applyPromoCode()">Apply</button>
+        </div>
+        <div id="applied-promo-alert" style="margin-top: 0.5rem; display: none; font-size: 0.82rem;"></div>
+      </div>
+
+      <!-- Bill & Tax Summary (Sri Lankan Rupees) -->
+      <div class="summary-box">
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span id="summary-subtotal">Rs. 0.00</span>
+        </div>
+        <div class="summary-row discount" id="summary-discount-row" style="display: none;">
+          <span>Promo Discount</span>
+          <span id="summary-discount">-Rs. 0.00</span>
+        </div>
+        <div class="summary-row">
+          <span>Delivery Fee <small id="free-delivery-note" style="color: var(--success);"></small></span>
+          <span id="summary-delivery">Rs. 0.00</span>
+        </div>
+        <div class="summary-row">
+          <span>Taxes (<span id="summary-tax-rate">10%</span>)</span>
+          <span id="summary-tax">Rs. 0.00</span>
+        </div>
+        <div class="summary-row total">
+          <span>Total Payable</span>
+          <span id="summary-total">Rs. 0.00</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-footer">
+      <button class="btn btn-primary" style="width: 100%; padding: 0.85rem;" id="checkout-btn" onclick="proceedToCheckout()">
+        Proceed to Checkout ➔
+      </button>
+    </div>
+  </aside>
+
+  <!-- USER AUTH / REGISTRATION / LOGIN / OTP MODAL -->
+  <div class="modal-overlay" id="auth-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="auth-modal-title">👤 User Account & Verification</h3>
+        <button class="drawer-close" onclick="closeAuthModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+
+        <!-- Tabs: Register (Self) vs Login -->
+        <div id="auth-choice-tabs" style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+          <button class="admin-tab-btn active" id="tab-btn-login" onclick="switchAuthMode('login')">Account Login</button>
+          <button class="admin-tab-btn" id="tab-btn-register" onclick="switchAuthMode('register')">Register New Account</button>
+        </div>
+
+        <!-- 1. LOGIN FORM -->
+        <div id="auth-view-login">
+          <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">
+            Sign in with your Sri Lankan telephone number and password, or use OTP.
+          </p>
+          <div class="form-group">
+            <label>Telephone Number</label>
+            <input type="tel" id="login-phone" placeholder="e.g. 0771234567 or 0770000000">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="login-password" placeholder="Enter your password">
+          </div>
+          <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+            <button class="btn btn-primary" style="flex: 1;" onclick="submitPasswordLogin()">
+              Sign In
+            </button>
+            <button class="btn btn-outline" style="flex: 1;" onclick="startOtpLoginFlow()">
+              Login via SMS OTP
+            </button>
+          </div>
+
+          <div style="margin-top: 1.25rem; padding-top: 0.75rem; border-top: 1px dashed var(--border); font-size: 0.8rem; color: var(--text-muted);">
+            <div><strong>Default Accounts for Testing:</strong></div>
+            <div>• <strong>Admin:</strong> Phone: <code>0770000000</code> | Password: <code>admin</code></div>
+            <div>• <strong>Customer:</strong> Phone: <code>0771234567</code> | Password: <code>user123</code></div>
+          </div>
+        </div>
+
+        <!-- 2. REGISTER FORM (Self Account Creation with OTP Verification) -->
+        <div id="auth-view-register" style="display: none;">
+          <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">
+            Create your personal customer profile with telephone number OTP verification.
+          </p>
+          <div class="form-group">
+            <label>Full Name *</label>
+            <input type="text" id="reg-name" placeholder="e.g. Kasun Fernando">
+          </div>
+          <div class="form-group">
+            <label>Sri Lankan Mobile Number *</label>
+            <input type="tel" id="reg-phone" placeholder="e.g. 0771234567">
+          </div>
+          <div class="form-group">
+            <label>Create Password *</label>
+            <input type="password" id="reg-password" placeholder="Create a strong password">
+          </div>
+
+          <!-- OTP Request Button -->
+          <div id="reg-otp-btn-wrap">
+            <button class="btn btn-outline" style="width: 100%; margin-bottom: 0.75rem;" onclick="requestRegisterOtp()">
+              📱 Send Verification OTP to Telephone
+            </button>
+          </div>
+
+          <!-- OTP Input Section for Registration -->
+          <div id="reg-otp-section" style="display: none; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+            <div style="font-size: 0.85rem; color: #4338ca; text-align: center; margin-bottom: 0.5rem;">
+              ⚡ <strong>Verification OTP:</strong> <span id="reg-debug-otp" style="font-weight: 800; font-size: 1.1rem;">123456</span>
+              <button class="btn btn-outline" style="font-size: 0.72rem; padding: 0.2rem 0.5rem; margin-left: 6px;" onclick="autoFillRegOtp()">Auto-Fill</button>
+            </div>
+            <label style="font-size: 0.82rem; font-weight: 600;">Enter 6-Digit OTP Code</label>
+            <input type="text" id="reg-otp-code" placeholder="6-digit code" maxlength="6" style="text-align: center; letter-spacing: 4px; font-weight: bold; font-size: 1.2rem;">
+          </div>
+
+          <button class="btn btn-primary" style="width: 100%;" onclick="submitUserRegistration()">
+            Create Customer Account
+          </button>
+        </div>
+
+        <!-- 3. OTP VERIFY FLOW (For OTP Login) -->
+        <div id="auth-view-otp-login" style="display: none;">
+          <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center;">
+            Verification code sent to <strong id="otp-login-target-phone"></strong>.
+          </p>
+
+          <div style="background: #eef2ff; border: 1px dashed #6366f1; border-radius: 8px; padding: 0.75rem; margin: 1rem 0; text-align: center;">
+            <div style="font-size: 0.8rem; color: #4338ca;">⚡ <strong>Instant Test OTP:</strong> <span id="debug-otp-display" style="font-weight: bold; font-size: 1.1rem; letter-spacing: 2px;">123456</span></div>
+            <button class="btn btn-outline" style="font-size: 0.78rem; padding: 0.25rem 0.6rem; margin-top: 0.4rem; background: #fff;" onclick="quickFillOtp()">
+              Click to Auto-Fill OTP
+            </button>
+          </div>
+
+          <div class="otp-inputs">
+            <input type="text" class="otp-digit" maxlength="1" autofocus onkeyup="handleOtpInput(this, 1)">
+            <input type="text" class="otp-digit" maxlength="1" onkeyup="handleOtpInput(this, 2)">
+            <input type="text" class="otp-digit" maxlength="1" onkeyup="handleOtpInput(this, 3)">
+            <input type="text" class="otp-digit" maxlength="1" onkeyup="handleOtpInput(this, 4)">
+            <input type="text" class="otp-digit" maxlength="1" onkeyup="handleOtpInput(this, 5)">
+            <input type="text" class="otp-digit" maxlength="1" onkeyup="handleOtpInput(this, 6)">
+          </div>
+
+          <button class="btn btn-primary" style="width: 100%;" onclick="submitOtpLogin()">
+            Verify & Sign In
+          </button>
+        </div>
+
+        <!-- 4. LOGGED IN USER PROFILE CARD -->
+        <div id="auth-view-profile" style="display: none;">
+          <div style="text-align: center; margin-bottom: 1.5rem;">
+            <div style="font-size: 3rem;" id="user-avatar-icon">👤</div>
+            <h4 id="user-profile-name">Customer Name</h4>
+            <p style="color: var(--text-muted); font-size: 0.88rem;" id="user-profile-phone">0771234567</p>
+            <div id="user-role-badge" style="display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.75rem; font-weight: 800; margin-top: 0.4rem; text-transform: uppercase;">
+              User
+            </div>
+          </div>
+
+          <div id="admin-shortcut-box" style="display: none; background: #fef3c7; border: 1px solid #fde68a; border-radius: 8px; padding: 0.85rem; margin-bottom: 1rem; text-align: center;">
+            <div style="font-weight: 700; color: #92400e; font-size: 0.85rem;">👑 Admin Privileges Active</div>
+            <button class="btn btn-secondary" style="font-size: 0.8rem; margin-top: 0.4rem; width: 100%;" onclick="closeAuthModal(); openAdminModal();">
+              Open Admin Control Panel
+            </button>
+          </div>
+
+          <button class="btn btn-danger" style="width: 100%;" onclick="logoutUser()">
+            Log Out
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- CHECKOUT & PAYMENT MODAL -->
+  <div class="modal-overlay" id="checkout-modal">
+    <div class="modal-content" style="max-width: 620px;">
+      <div class="modal-header">
+        <h3>🛍️ Complete Delivery Checkout</h3>
+        <button class="drawer-close" onclick="closeCheckoutModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Customer & Phone info -->
+        <div style="background: #f1f5f9; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 0.88rem; font-weight: 700;" id="checkout-customer-name">User</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">Verified Contact: <span id="checkout-customer-phone"></span></div>
+          </div>
+          <button class="btn btn-outline" style="font-size: 0.75rem; padding: 0.3rem 0.6rem;" onclick="closeCheckoutModal(); openAuthModal();">Switch Account</button>
+        </div>
+
+        <!-- Delivery Address Selection & Form -->
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+            <label style="margin: 0;">📍 Delivery Address in Sri Lanka</label>
+            <button type="button" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.2rem 0.5rem;" onclick="toggleAddAddressForm()">+ Add New Address</button>
+          </div>
+
+          <div id="checkout-address-list">
+            <!-- Render saved addresses -->
+          </div>
+
+          <div id="add-address-form-box" style="display: none; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-top: 0.75rem;">
+            <h5 style="margin-bottom: 0.75rem; font-size: 0.9rem;">Add Sri Lankan Delivery Location</h5>
+            <div class="form-group">
+              <label>Address Label</label>
+              <input type="text" id="new-addr-title" placeholder="Home, Office, Apartment 3C">
+            </div>
+            <div class="form-group">
+              <label>Street Address *</label>
+              <input type="text" id="new-addr-street" placeholder="e.g. 45 Galle Road">
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+              <div class="form-group" style="flex: 2;">
+                <label>City / Town *</label>
+                <input type="text" id="new-addr-city" placeholder="e.g. Colombo, Kandy, Dehiwala">
+              </div>
+              <div class="form-group" style="flex: 1;">
+                <label>Postal Code</label>
+                <input type="text" id="new-addr-postal" placeholder="e.g. 00300">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Landmark / Delivery Note</label>
+              <input type="text" id="new-addr-landmark" placeholder="Near clock tower / blue gate">
+            </div>
+            <button class="btn btn-primary" style="font-size: 0.85rem;" onclick="saveNewCheckoutAddress()">Save & Select Address</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Delivery Instructions (Optional)</label>
+          <input type="text" id="checkout-delivery-note" placeholder="e.g. Call before arrival, leave with security">
+        </div>
+
+        <!-- Payment Method Selection -->
+        <div class="form-group">
+          <label>💳 Select Payment Method (Sri Lankan Rupees)</label>
+          <div class="payment-selector">
+            <div class="pay-card active" id="pay-method-card" onclick="selectPaymentMethod('card')">
+              <div class="icon">💳</div>
+              <div class="title">Debit/Credit Card</div>
+            </div>
+            <div class="pay-card" id="pay-method-qr" onclick="selectPaymentMethod('qr')">
+              <div class="icon">📱</div>
+              <div class="title">LankaQR / QR Pay</div>
+            </div>
+            <div class="pay-card" id="pay-method-cod" onclick="selectPaymentMethod('cod')">
+              <div class="icon">💵</div>
+              <div class="title">Cash On Delivery</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Payment Form -->
+        <div id="payment-fields-card" style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1.25rem;">
+          <div class="form-group">
+            <label>Cardholder Name</label>
+            <input type="text" id="card-holder-name" placeholder="Kasun Fernando">
+          </div>
+          <div class="form-group">
+            <label>Card Number</label>
+            <input type="text" id="card-number" placeholder="4532 0123 4567 8910" maxlength="19">
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <div class="form-group" style="flex: 1;">
+              <label>Expiry (MM/YY)</label>
+              <input type="text" id="card-expiry" placeholder="08/29" maxlength="5">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label>CVV / CVC</label>
+              <input type="password" id="card-cvv" placeholder="123" maxlength="4">
+            </div>
+          </div>
+          <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
+            🔒 256-Bit SSL End-to-End Encrypted Card Gateway
+          </div>
+        </div>
+
+        <!-- QR Code Payment View -->
+        <div id="payment-fields-qr" style="display: none; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-bottom: 1.25rem; text-align: center;">
+          <h4 style="margin-bottom: 0.25rem;">Scan LankaQR to Pay Now</h4>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.75rem;">Scan using any Sri Lankan Banking App (Commercial Bank Flash, Sampath WePay, BOC, HNB, FriMi, etc.)</p>
+          <div style="display: flex; justify-content: center; margin-bottom: 0.75rem;">
+            <img id="checkout-qr-image" src="" alt="Payment QR Code" style="width: 180px; height: 180px; border-radius: 8px; border: 2px solid #e2e8f0; background: #fff; padding: 6px;">
+          </div>
+          <div style="font-size: 0.88rem; font-weight: 700; color: var(--secondary);">
+            Amount to Pay: <span id="qr-modal-amount">Rs. 0.00</span>
+          </div>
+          <p style="font-size: 0.78rem; color: var(--success); margin-top: 0.3rem;">✓ LankaQR generated dynamically in Sri Lankan Rupees (LKR)</p>
+        </div>
+
+        <!-- Cash on Delivery Info -->
+        <div id="payment-fields-cod" style="display: none; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 1rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; color: #065f46; font-weight: 600; font-size: 0.9rem;">
+            <span>💵</span> Cash On Delivery (Sri Lankan Rupees)
+          </div>
+          <p style="font-size: 0.82rem; color: #047857; margin-top: 0.3rem;">
+            Please prepare the exact cash amount in Sri Lankan Rupees for our delivery rider.
+          </p>
+        </div>
+
+        <!-- Final Order Total & Place Order -->
+        <div style="border-top: 1px solid var(--border); padding-top: 1rem;">
+          <div style="display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: 800; margin-bottom: 1rem;">
+            <span>Order Total:</span>
+            <span id="checkout-final-total">Rs. 0.00</span>
+          </div>
+
+          <button class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1rem;" id="btn-place-order" onclick="submitFinalOrder()">
+            Place Order Now
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ORDER SUCCESS / TRACKING MODAL -->
+  <div class="modal-overlay" id="order-success-modal">
+    <div class="modal-content" style="text-align: center; max-width: 500px;">
+      <div class="modal-body" style="padding: 2.5rem 1.5rem;">
+        <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">🎉</div>
+        <h2 style="font-size: 1.5rem; margin-bottom: 0.4rem;">Order Placed Successfully!</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">
+          Order Reference: <strong id="success-order-id" style="color: var(--primary);">LK-123456</strong>
+        </p>
+
+        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 1rem; text-align: left; margin-bottom: 1.5rem;">
+          <div style="display:flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 0.5rem;">
+            <span style="color: var(--text-muted);">Status:</span>
+            <span style="font-weight: 700; color: #d97706;" id="success-order-status">PLACED</span>
+          </div>
+          <div style="display:flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 0.5rem;">
+            <span style="color: var(--text-muted);">Payment:</span>
+            <span style="font-weight: 700; color: var(--success);" id="success-order-payment">PAID</span>
+          </div>
+          <div style="display:flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 0.5rem;">
+            <span style="color: var(--text-muted);">Estimated Delivery:</span>
+            <span style="font-weight: 700;" id="success-order-time">30-45 mins</span>
+          </div>
+          <div style="display:flex; justify-content: space-between; font-size: 0.88rem;">
+            <span style="color: var(--text-muted);">Delivering To:</span>
+            <span style="font-weight: 600;" id="success-order-address">Colombo</span>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" style="width: 100%;" onclick="closeSuccessModal()">
+          Back to Menu
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN PORTAL MODAL (ACCESSIBLE ONLY TO ADMIN ACCOUNTS) -->
+  <div class="modal-overlay" id="admin-modal">
+    <div class="modal-content" style="max-width: 860px;">
+      <div class="modal-header">
+        <h3>👑 Admin Portal (Authorized Personnel Only)</h3>
+        <button class="drawer-close" onclick="closeAdminModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="admin-tabs">
+          <button class="admin-tab-btn active" onclick="switchAdminTab('users-tab', this)">User & Admin Accounts</button>
+          <button class="admin-tab-btn" onclick="switchAdminTab('tax-tab', this)">Tax & System Settings</button>
+          <button class="admin-tab-btn" onclick="switchAdminTab('promo-tab', this)">Promotion Codes</button>
+          <button class="admin-tab-btn" onclick="switchAdminTab('menu-tab', this)">Food Menu</button>
+          <button class="admin-tab-btn" onclick="switchAdminTab('orders-tab', this)">Live Orders</button>
+        </div>
+
+        <!-- 1. USER & ADMIN MANAGEMENT TAB (NEW) -->
+        <div class="tab-pane active" id="users-tab">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <div>
+              <h4 style="margin: 0;">Account Management</h4>
+              <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0;">Create new Admin and User accounts, or adjust roles.</p>
+            </div>
+            <button class="btn btn-outline" style="font-size: 0.82rem;" onclick="toggleNewUserForm()">+ Create New Account</button>
+          </div>
+
+          <!-- Create Account by Admin Form -->
+          <div id="new-user-form" style="display: none; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+            <h5 style="margin-bottom: 0.75rem;">Create Admin or User Account</h5>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div class="form-group">
+                <label>Account Role *</label>
+                <select id="admin-create-role">
+                  <option value="admin">👑 Admin Account</option>
+                  <option value="user" selected>👤 Regular User Account</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Full Name *</label>
+                <input type="text" id="admin-create-name" placeholder="e.g. Sunil Perera">
+              </div>
+              <div class="form-group">
+                <label>Telephone Number *</label>
+                <input type="tel" id="admin-create-phone" placeholder="e.g. 0779998877">
+              </div>
+              <div class="form-group">
+                <label>Temporary / Account Password *</label>
+                <input type="text" id="admin-create-pass" placeholder="e.g. securePass123">
+              </div>
+            </div>
+            <button class="btn btn-primary" style="font-size: 0.85rem;" onclick="submitAdminCreateUser()">Create Account</button>
+          </div>
+
+          <!-- Users Table -->
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+              <thead>
+                <tr style="text-align: left; background: #f1f5f9;">
+                  <th style="padding: 0.5rem;">Name</th>
+                  <th style="padding: 0.5rem;">Telephone</th>
+                  <th style="padding: 0.5rem;">Role</th>
+                  <th style="padding: 0.5rem;">Joined</th>
+                  <th style="padding: 0.5rem;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-users-tbody">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 2. Tax & System Settings Tab -->
+        <div class="tab-pane" id="tax-tab">
+          <h4 style="margin-bottom: 0.25rem;">Adjust Tax & Delivery Rates (Sri Lankan Rupees)</h4>
+          <p style="color: var(--text-muted); font-size: 0.82rem; margin-bottom: 1rem;">Changes take effect immediately across all customer checkout calculations.</p>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label>Tax Percentage (% VAT / Service Charge)</label>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="number" id="admin-tax-percent" min="0" max="100" step="0.5" placeholder="10">
+                <span style="font-weight: bold;">%</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Standard Delivery Fee (Rs.)</label>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-weight: bold;">Rs.</span>
+                <input type="number" id="admin-delivery-fee" min="0" step="10" placeholder="350.00">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Free Delivery Threshold (Rs.)</label>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-weight: bold;">Rs.</span>
+                <input type="number" id="admin-free-threshold" min="0" step="100" placeholder="4500.00">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Restaurant Display Name</label>
+              <input type="text" id="admin-restaurant-name" placeholder="BiteBreeze Food Express">
+            </div>
+          </div>
+
+          <button class="btn btn-primary" onclick="saveAdminSettings()">
+            Save System Settings
+          </button>
+        </div>
+
+        <!-- 3. Promotion Codes Tab (Admin Only View) -->
+        <div class="tab-pane" id="promo-tab">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <div>
+              <h4 style="margin: 0;">Promotion & Coupon Codes (Admin Only)</h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">These secret codes are not shown to customers. Share them selectively.</p>
+            </div>
+            <button class="btn btn-outline" style="font-size: 0.82rem;" onclick="toggleNewPromoForm()">+ Create New Promo Code</button>
+          </div>
+
+          <!-- Create Promo Form -->
+          <div id="new-promo-form" style="display: none; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+            <h5 style="margin-bottom: 0.75rem;">Create New Promotion Code</h5>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div class="form-group">
+                <label>Promo Code (e.g. LANKA20) *</label>
+                <input type="text" id="new-promo-code" placeholder="CODE">
+              </div>
+              <div class="form-group">
+                <label>Discount Type *</label>
+                <select id="new-promo-type">
+                  <option value="percentage">Percentage Discount (%)</option>
+                  <option value="fixed">Fixed Sri Lankan Rupees (Rs.)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Discount Value *</label>
+                <input type="number" id="new-promo-val" min="1" placeholder="20">
+              </div>
+              <div class="form-group">
+                <label>Minimum Order Spend (Rs.)</label>
+                <input type="number" id="new-promo-min" min="0" placeholder="2000">
+              </div>
+              <div class="form-group">
+                <label>Max Discount Cap (Rs.) (For % type)</label>
+                <input type="number" id="new-promo-max" min="0" placeholder="1000">
+              </div>
+              <div class="form-group">
+                <label>Expiration Date</label>
+                <input type="date" id="new-promo-expiry" value="2027-12-31">
+              </div>
+            </div>
+            <button class="btn btn-primary" style="font-size: 0.85rem;" onclick="submitNewPromoCode()">Create Coupon</button>
+          </div>
+
+          <!-- Existing Promos Table -->
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+              <thead>
+                <tr style="text-align: left; background: #f1f5f9;">
+                  <th style="padding: 0.5rem;">Code</th>
+                  <th style="padding: 0.5rem;">Discount</th>
+                  <th style="padding: 0.5rem;">Min Order</th>
+                  <th style="padding: 0.5rem;">Status</th>
+                  <th style="padding: 0.5rem;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-promos-tbody">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 4. Food Menu Tab -->
+        <div class="tab-pane" id="menu-tab">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h4 style="margin: 0;">Food Menu Items</h4>
+            <button class="btn btn-outline" style="font-size: 0.82rem;" onclick="toggleNewFoodForm()">+ Add New Food Item</button>
+          </div>
+
+          <div id="new-food-form" style="display: none; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+            <h5 style="margin-bottom: 0.75rem;">Add Sri Lankan Menu Item</h5>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div class="form-group">
+                <label>Item Name *</label>
+                <input type="text" id="new-food-name" placeholder="Chicken Cheese Kottu">
+              </div>
+              <div class="form-group">
+                <label>Category *</label>
+                <select id="new-food-cat">
+                  <option value="cat-rice">Rice & Kottu</option>
+                  <option value="cat-burger">Burgers</option>
+                  <option value="cat-pizza">Pizza</option>
+                  <option value="cat-drinks">Beverages & Desserts</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Price in LKR (Rs.) *</label>
+                <input type="number" id="new-food-price" step="10" placeholder="1450.00">
+              </div>
+              <div class="form-group">
+                <label>Image URL</label>
+                <input type="text" id="new-food-img" placeholder="https://images.unsplash.com/...">
+              </div>
+              <div class="form-group" style="grid-column: span 2;">
+                <label>Description</label>
+                <input type="text" id="new-food-desc" placeholder="Spiced chicken, melted cheese, fresh veggies and gravy">
+              </div>
+            </div>
+            <button class="btn btn-primary" style="font-size: 0.85rem;" onclick="submitNewFoodItem()">Add Item</button>
+          </div>
+
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+              <thead>
+                <tr style="text-align: left; background: #f1f5f9;">
+                  <th style="padding: 0.5rem;">Food</th>
+                  <th style="padding: 0.5rem;">Category</th>
+                  <th style="padding: 0.5rem;">Price</th>
+                  <th style="padding: 0.5rem;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="admin-food-tbody">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 5. Customer Orders Tab -->
+        <div class="tab-pane" id="orders-tab">
+          <h4 style="margin-bottom: 0.5rem;">All Real-Time Customer Orders</h4>
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+              <thead>
+                <tr style="text-align: left; background: #f1f5f9;">
+                  <th style="padding: 0.5rem;">Order ID</th>
+                  <th style="padding: 0.5rem;">Customer & Phone</th>
+                  <th style="padding: 0.5rem;">Items</th>
+                  <th style="padding: 0.5rem;">Total (Rs.)</th>
+                  <th style="padding: 0.5rem;">Payment</th>
+                  <th style="padding: 0.5rem;">Status</th>
+                </tr>
+              </thead>
+              <tbody id="admin-orders-tbody">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <!-- App Script -->
+  <script src="js/app.js"></script>
+</body>
+</html>

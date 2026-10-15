@@ -1,0 +1,30 @@
+{
+  "name": "online-food-delivery-platform",
+  "version": "1.0.0",
+  "description": "Full-featured Online Food Delivery Platform with OTP, Card/QR/COD Payments, Promo Codes & Tax Settings",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js"
+  },
+  "keywords": [
+    "food-delivery",
+    "ecommerce",
+    "restaurant",
+    "qr-payment",
+    "card-payment",
+    "otp-verification"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "nodemailer": "^8.0.2",
+    "qrcode": "^1.5.4",
+    "uuid": "^13.0.0"
+  }
+}
